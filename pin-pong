@@ -1,0 +1,118 @@
+from pygame import *
+from random import randint
+from time import time as timer
+
+img_racket = 'racket.png'
+img_tenis_ball = 'tenis_ball.png'
+img_background = 'back.jpg'
+
+
+font.init()
+font1 = font.SysFont('Tahoma', 80)
+lose1 = font1.render('PLAYER 1 LOSE!', True, (255, 255, 255))
+lose2 = font1.render('PLAYER 2 LOSE!', True, (180, 0, 0))
+font2 = font.SysFont('Tahoma', 36)
+
+speed_x = 3
+speed_y = 3
+
+win_width = 900
+win_height = 600
+display.set_caption("Pin-Pong")
+window = display.set_mode((win_width, win_height))
+background = transform.scale(image.load(img_background), (win_width, win_height))
+
+# класс-родитель для других спрайтов
+class GameSprite(sprite.Sprite):
+  # конструктор класса
+    def __init__(self, player_image, player_x, player_y, size_x, size_y, player_speed):
+        # Вызываем конструктор класса (Sprite):
+        sprite.Sprite.__init__(self)
+
+        # каждый спрайт должен хранить свойство image - изображение
+        self.image = transform.scale(image.load(player_image), (size_x, size_y))
+        self.speed = player_speed
+
+        # каждый спрайт должен хранить свойство rect - прямоугольник, в который он вписан
+        self.rect = self.image.get_rect()
+        self.rect.x = player_x
+        self.rect.y = player_y
+    # метод, отрисовывающий героя на окне
+    def reset(self):
+        window.blit(self.image, (self.rect.x, self.rect.y))
+
+# класс главного игрока
+class Player(GameSprite):
+    # метод для управления спрайтом кнопками клавиатуры
+    def update(self):
+        keys = key.get_pressed()
+        
+        if keys[K_w] and self.rect.y > 5:
+            self.rect.y -= self.speed
+        if keys[K_s] and self.rect.y < 500:
+            self.rect.y += self.speed
+
+# класс главного игрока
+class Player2(GameSprite):
+    # метод для управления спрайтом стрелками клавиатуры
+    def update(self):
+        keys = key.get_pressed()
+        
+        if keys[K_UP] and self.rect.y > 5:
+            self.rect.y -= self.speed
+        if keys[K_DOWN] and self.rect.y < 500:
+            self.rect.y += self.speed
+lost = 0
+class Ball(GameSprite):
+    # движение мяча
+    def update(self, speed_x, speed_y, racket, racket2):
+        finish = False
+        ball.rect.x+=speed_x
+        ball.rect.y+=speed_y
+
+        if sprite.collide_rect(racket, ball) or sprite.collide_rect(racket2, ball):
+            speed_x *= -1
+        if ball.rect.y < 0:
+            speed_y *= -1
+        if ball.rect.y > 550:
+            speed_y *= -1
+        if ball.rect.x > 900:
+            speed_x *= -1
+            finish = True
+            window.blit(lose1, (200, 200))
+        if  ball.rect.x < -50:
+            speed_x *= -1
+            finish = True
+            window.blit(lose2, (200, 200))
+        
+        return speed_x, speed_y, finish
+        
+
+    def colliderect(self, rect):
+        return self.rect.colliderect(rect)
+
+
+racket = Player(img_racket, 20, win_height - 100, 50, 100, 10)
+racket2 = Player2(img_racket, 830, win_height - 100, 50, 100, 10)
+ball = Ball(img_tenis_ball, 400, win_height - 50, 50, 50, 10)
+finish = False
+run = True
+while run:
+    # событие нажатия на кнопку Закрыть
+    for e in event.get():
+        if e.type == QUIT:
+            run = False
+    if not finish:
+            # обновляем фон
+        window.blit(background,(0,0))
+        
+
+        racket.update()
+        racket.reset()
+        racket2.update()
+        racket2.reset()
+        speed_x, speed_y, finish = ball.update(speed_x, speed_y, racket, racket2)
+        #ball.update()
+    ball.reset()
+    display.update()
+    time.delay(20)
